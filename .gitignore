@@ -6,3 +6,4 @@
 /VoterSearchApp/bin/Debug/net9.0
 /VoterSearchApp/obj
 /VoterSearchApp/wwwroot/uploads
+/VoterSearchApp/wwwroot/data/voters.json
