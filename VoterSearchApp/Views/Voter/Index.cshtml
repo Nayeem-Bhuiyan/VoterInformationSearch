@@ -1,0 +1,178 @@
+﻿@model List<VoterSearchApp.Models.Voter>
+@{
+    ViewData["Title"] = "ভোটার তথ্য খুঁজুন";
+    var searchText = ViewBag.SearchText as string ?? "";
+    var searchMessage = ViewBag.SearchMessage as string ?? "";
+}
+
+<div class="container-fluid mt-3">
+    <!-- Search Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-search"></i> ভোটার তথ্য অনুসন্ধান</h4>
+            <div>
+                <a href="@Url.Action("Upload")" class="btn btn-light btn-sm">
+                    <i class="fas fa-upload"></i> PDF আপলোড
+                </a>
+                <form method="post" asp-action="ClearAll" class="d-inline"
+                      onsubmit="return confirm('সমস্ত তথ্য মুছে ফেলতে চান?');">
+                    <button type="submit" class="btn btn-danger btn-sm ms-2">
+                        <i class="fas fa-trash"></i> সব মুছুন
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-2">
+                <div class="col-md-8">
+                    <div class="input-group input-group-lg">
+                        <input type="text"
+                               name="SearchText"
+                               class="form-control border-primary"
+                               placeholder="ভোটার নম্বর, নাম, পিতার নাম বা মাতার নাম বাংলা/ইংরেজিতে লিখুন..."
+                               value="@searchText"
+                               required>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> খুঁজুন
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        ভোটার নম্বরের শেষ ৪ বা ৫ ডিজিট দিয়েও খুঁজতে পারেন। উদাহরণ: "1234" অথবা "45678"
+                    </small>
+                </div>
+            </form>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success mt-3 alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(searchMessage))
+            {
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i> @searchMessage
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    @if (Model.Any())
+    {
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-users"></i> ভোটার তালিকা</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="80">ক্রমিক</th>
+                                <th width="150">ভোটার নম্বর</th>
+                                <th>নাম</th>
+                                <th>পিতার নাম</th>
+                                <th>মাতার নাম</th>
+                                <th>পেশা</th>
+                                <th width="120">জন্ম তারিখ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var voter in Model)
+                            {
+                                <tr>
+                                    <td class="text-center"><span class="badge bg-secondary">@voter.SerialNumber</span></td>
+                                    <td>
+                                        <span class="fw-bold text-primary">
+                                            <i class="fas fa-id-card"></i> @voter.VoterNumber
+                                        </span>
+                                    </td>
+                                    <td>@voter.Name</td>
+                                    <td>@voter.FatherName</td>
+                                    <td>@voter.MotherName</td>
+                                    <td>
+                                        <span class="badge bg-info">@voter.Profession</span>
+                                    </td>
+                                    <td>@voter.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <div class="row">
+                    <div class="col">
+                        সর্বশেষ আপডেট: @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+                    </div>
+                    <div class="col text-end">
+                        <strong>মোট: @Model.Count জন</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(searchText))
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <h4>কোন তথ্য পাওয়া যায়নি</h4>
+                    <p>"@searchText" এর সাথে মিলিয়ে কোন ভোটার পাওয়া যায়নি</p>
+                    <a href="@Url.Action("Index")" class="btn btn-primary mt-3">
+                        <i class="fas fa-redo"></i> সব ভোটার দেখুন
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <h4>কোন ভোটার তথ্য পাওয়া যায়নি</h4>
+                    <p>প্রথমে PDF ফাইল আপলোড করুন ভোটার তথ্য দেখতে</p>
+                    <a href="@Url.Action("Upload")" class="btn btn-success mt-3">
+                        <i class="fas fa-upload"></i> PDF ফাইল আপলোড করুন
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto-focus search input
+            $('input[name="SearchText"]').focus();
+
+            // Auto-select search text on focus
+            $('input[name="SearchText"]').on('focus', function() {
+                $(this).select();
+            });
+
+            // Keyboard shortcut for search (Ctrl + F)
+            $(document).on('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    $('input[name="SearchText"]').focus().select();
+                }
+            });
+
+            // Smooth scroll to results
+            if ('@Model.Any()' === 'True') {
+                $('html, body').animate({
+                    scrollTop: $('.card-header.bg-success').offset().top - 20
+                }, 500);
+            }
+        });
+    </script>
+}

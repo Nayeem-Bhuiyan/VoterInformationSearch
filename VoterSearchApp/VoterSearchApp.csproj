@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\uploads\120dcca9-8c91-4d13-b5fc-8acf3235a378.pdf" />
+    <Content Remove="wwwroot\uploads\341c9948-21af-4787-803f-c44d9f427e9d.pdf" />
+    <Content Remove="wwwroot\uploads\387da90d-8f02-4ed1-a72b-8695952fb763.pdf" />
+    <Content Remove="wwwroot\uploads\826ebf0e-fac1-4ff7-9c1c-b70abb85ba47.pdf" />
+    <Content Remove="wwwroot\uploads\85e358f0-a79c-4d03-a3a5-5c5de0d61a2d.pdf" />
+    <Content Remove="wwwroot\uploads\badf0517-bf28-4969-ab5b-3a0d7f7a8fed.pdf" />
+    <Content Remove="wwwroot\uploads\pdf.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="VoterPdfs\" />
+    <Folder Include="wwwroot\data\" />
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
+  </ItemGroup>
+
+</Project>

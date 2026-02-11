@@ -1,0 +1,539 @@
+﻿@{
+    ViewData["Title"] = "PDF ফাইল আপলোড";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0">
+                <!-- Card Header -->
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white rounded-circle p-2 me-3">
+                            <i class="fas fa-file-upload text-primary fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">ভোটার তথ্য PDF ফাইল আপলোড</h3>
+                            <p class="mb-0 opacity-75">নতুন ভোটার তথ্য সিস্টেমে যোগ করুন</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body p-4">
+
+
+                    <!-- Add this at the beginning of the card-body div, after the instructions section -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <div class="d-flex">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3 mt-1"></i>
+                                <div>
+                                    <h5 class="alert-heading mb-2">আপলোড ব্যর্থ!</h5>
+                                    <ul class="mb-0 ps-3">
+                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Instructions Section -->
+                    <div class="alert alert-info border-info">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-info-circle fa-2x me-3 mt-1 text-info"></i>
+                            <div>
+                                <h5 class="alert-heading mb-2">ফাইল ফরমেট নির্দেশিকা:</h5>
+                                <div class="mb-3">
+                                    <p class="mb-2">ফাইলটি নিম্নোক্ত ফরমেটে হতে হবে (বাংলা বা ইংরেজিতে):</p>
+                                    <div class="bg-light p-3 rounded border">
+                                        <pre class="mb-0" style="font-family: 'Courier New', monospace; font-size: 14px;">
+                                            0001. name :রাজিব আহমেদ
+                                            voter number:2024000001
+                                            father name:আব্দুল করিম
+                                            mother name:সালমা বেগম
+                                            profession:ব্যবসায়ী
+                                            date of birth:15/06/1985
+
+                                            0002. name :সুপ্রিয়া সরকার
+                                            voter number:2024000002
+                                            father name:অনিল সরকার
+                                            mother name:মায়া সরকার
+                                            profession:শিক্ষক
+                                            date of birth:22/09/1990
+
+                                            0003. name :John Smith
+                                            voter number:2024000003
+                                            father name:Robert Smith
+                                            mother name:Mary Smith
+                                            profession:Engineer
+                                            date of birth:10/03/1988</pre>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-check-circle text-success me-2"></i> গ্রহণযোগ্য:</h6>
+                                        <ul class="mb-0">
+                                            <li>PDF ফাইল (.pdf)</li>
+                                            <li>ফাইল সাইজ: সর্বোচ্চ 1000MB</li>
+                                            <li>বাংলা বা ইংরেজি টেক্সট</li>
+                                            <li>মাল্টিপল ভোটার ডাটা</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-times-circle text-danger me-2"></i> অগ্রহণযোগ্য:</h6>
+                                        <ul class="mb-0">
+                                            <li>ছবি বা স্ক্যান ফাইল</li>
+                                            <li>1000MB এর বেশি সাইজ</li>
+                                            <li>পাসওয়ার্ড প্রটেক্টেড PDF</li>
+                                            <li>সঠিক ফরমেটের বাইরের ডাটা</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Form -->
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm" class="needs-validation" novalidate>
+                        <!-- File Upload Area -->
+                        <div class="mb-4">
+                            <label for="pdfFile" class="form-label fw-bold">
+                                <i class="fas fa-file-pdf me-2"></i>PDF ফাইল নির্বাচন করুন
+                            </label>
+
+                            <div class="file-upload-area border-2 border-dashed rounded p-5 text-center mb-3"
+                                 id="dropArea"
+                                 style="border-color: #6c757d; background-color: #f8f9fa;">
+                                <div class="upload-icon mb-3">
+                                    <i class="fas fa-cloud-upload-alt fa-4x text-secondary"></i>
+                                </div>
+                                <h5 class="mb-2">ফাইল এখানে ড্রপ করুন</h5>
+                                <p class="text-muted mb-3">অথবা</p>
+
+                                <div class="mb-3">
+                                    <input type="file"
+                                           class="form-control d-none"
+                                           id="pdfFile"
+                                           name="pdfFile"
+                                           accept=".pdf"
+                                           required>
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="document.getElementById('pdfFile').click()">
+                                        <i class="fas fa-folder-open me-2"></i>ফাইল ব্রাউজ করুন
+                                    </button>
+                                </div>
+
+                                <small class="text-muted">শুধুমাত্র .pdf ফাইল, সর্বোচ্চ 1000MB</small>
+                            </div>
+
+                            <!-- Selected File Info -->
+                            <div class="selected-file-info d-none" id="fileInfo">
+                                <div class="alert alert-success d-flex align-items-center">
+                                    <i class="fas fa-file-pdf fa-2x me-3 text-success"></i>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1" id="fileName"></h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small id="fileSize" class="text-muted"></small>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile()">
+                                                <i class="fas fa-times"></i> রিমুভ
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Validation Messages -->
+                            <div class="invalid-feedback" id="fileError">
+                                একটি PDF ফাইল সিলেক্ট করুন
+                            </div>
+                        </div>
+
+                        <!-- Preview Button (Optional) -->
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-outline-info" id="previewBtn" disabled>
+                                <i class="fas fa-eye me-2"></i>ফাইল প্রিভিউ
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar (Hidden by default) -->
+                        <div class="mb-4 d-none" id="progressContainer">
+                            <div class="mb-2">
+                                <span id="progressText">আপলোড হচ্ছে...</span>
+                                <span class="float-end" id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn">
+                                <i class="fas fa-upload me-2"></i>আপলোড করুন
+                            </button>
+
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg px-5">
+                                <i class="fas fa-arrow-left me-2"></i>ফিরে যান
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Help Text -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start mb-3">
+                                    <i class="fas fa-lightbulb text-warning fa-lg mt-1 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">টিপস:</h6>
+                                        <p class="small mb-0">• একাধিক ভোটার তথ্য একসাথে আপলোড করতে পারেন</p>
+                                        <p class="small mb-0">• প্রতিটি ভোটারের তথ্য আলাদা লাইনে রাখুন</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start mb-3">
+                                    <i class="fas fa-exclamation-triangle text-danger fa-lg mt-1 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">সতর্কতা:</h6>
+                                        <p class="small mb-0">• একই ভোটার নম্বর ডুপ্লিকেট হবে না</p>
+                                        <p class="small mb-0">• ভুল ফরমেটের ডাটা স্বয়ংক্রিয়ভাবে বাদ পড়বে</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- PDF Preview Modal -->
+                    <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="pdfPreviewModalLabel">
+                                        <i class="fas fa-file-pdf me-2"></i>PDF প্রিভিউ
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-0">
+                                    <div style="height: 80vh;">
+                                        <iframe id="pdfFrame" class="w-100 h-100" style="border: none;"></iframe>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="d-flex justify-content-between w-100 align-items-center">
+                                        <span id="pdfFileInfo" class="text-muted"></span>
+                                        <div>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-1"></i> বন্ধ
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <!-- Card Footer -->
+                <div class="card-footer bg-light py-3">
+                    <div class="text-center text-muted">
+                        <small>
+                            <i class="fas fa-history me-1"></i>
+                            সর্বশেষ আপলোড: @DateTime.Now.ToString("dd MMMM yyyy, hh:mm tt")
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const fileInput = $('#pdfFile');
+            const fileInfo = $('#fileInfo');
+            const fileName = $('#fileName');
+            const fileSize = $('#fileSize');
+            const dropArea = $('#dropArea');
+            const submitBtn = $('#submitBtn');
+            const previewBtn = $('#previewBtn');
+            const progressContainer = $('#progressContainer');
+            const progressBar = $('#progressBar');
+            const progressText = $('#progressText');
+            const progressPercent = $('#progressPercent');
+
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Handle file selection
+            fileInput.on('change', function(e) {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    updateFileInfo(file);
+                }
+            });
+
+            // Update file information display
+            function updateFileInfo(file) {
+                fileName.text(file.name);
+                fileSize.text(formatFileSize(file.size));
+                fileInfo.removeClass('d-none');
+                dropArea.addClass('d-none');
+                submitBtn.prop('disabled', false);
+                previewBtn.prop('disabled', false);
+
+                // Validate file size (max 1000MB)
+                if (file.size > 1000 * 1024 * 1024) {
+                    showError('ফাইল সাইজ 1000MB এর বেশি হতে পারবে না');
+                    resetFileInput();
+                    return false;
+                }
+
+                // Validate file type
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                    showError('শুধুমাত্র PDF ফাইল আপলোড করুন');
+                    resetFileInput();
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Remove selected file
+            window.removeFile = function() {
+                resetFileInput();
+            }
+
+            // Reset file input
+            function resetFileInput() {
+                fileInput.val('');
+                fileInfo.addClass('d-none');
+                dropArea.removeClass('d-none');
+                submitBtn.prop('disabled', true);
+                previewBtn.prop('disabled', true);
+                hideProgress();
+            }
+
+            // Show error message
+            function showError(message) {
+                const errorDiv = $('#fileError');
+                errorDiv.text(message).addClass('d-block');
+                setTimeout(() => errorDiv.removeClass('d-block'), 3000);
+            }
+
+            // Drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.on(eventName, preventDefaults);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.on(eventName, highlight);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.on(eventName, unhighlight);
+            });
+
+            function highlight() {
+                dropArea.addClass('border-primary').css('background-color', '#e3f2fd');
+            }
+
+            function unhighlight() {
+                dropArea.removeClass('border-primary').css('background-color', '#f8f9fa');
+            }
+
+            // Handle dropped files
+            dropArea.on('drop', function(e) {
+                const dt = e.originalEvent.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput[0].files = dataTransfer.files;
+                    updateFileInfo(file);
+                }
+            });
+
+
+                // With this new preview function:
+                previewBtn.on('click', function() {
+                    if (fileInput[0].files.length > 0) {
+                        const file = fileInput[0].files[0];
+                        const fileUrl = URL.createObjectURL(file);
+
+                        // Set iframe source to show PDF
+                        $('#pdfFrame').attr('src', fileUrl);
+
+                        // Show file info in modal footer
+                        $('#pdfFileInfo').text(`${file.name} (${formatFileSize(file.size)})`);
+
+                        // Show modal
+                        const modal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+                        modal.show();
+
+                        // Cleanup URL when modal closes
+                        $('#pdfPreviewModal').on('hidden.bs.modal', function() {
+                            URL.revokeObjectURL(fileUrl);
+                            $('#pdfFrame').attr('src', ''); // Clear iframe
+                        });
+                    }
+                });
+
+            // Show progress bar
+            function showProgress() {
+                progressContainer.removeClass('d-none');
+            }
+
+            // Hide progress bar
+            function hideProgress() {
+                progressContainer.addClass('d-none');
+                progressBar.css('width', '0%');
+                progressPercent.text('0%');
+            }
+
+            // Simulate upload progress
+            function simulateProgress() {
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    width += 10;
+                    progressBar.css('width', width + '%');
+                    progressPercent.text(width + '%');
+                }, 200);
+            }
+
+            // Form submission
+            $('#uploadForm').on('submit', function(e) {
+                if (fileInput[0].files.length === 0) {
+                    e.preventDefault();
+                    showError('ফাইল সিলেক্ট করুন');
+                    return false;
+                }
+
+                const file = fileInput[0].files[0];
+                if (!updateFileInfo(file)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Show progress and disable submit button
+                showProgress();
+                simulateProgress();
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>আপলোড হচ্ছে...');
+
+                return true;
+            });
+
+            // Keyboard shortcuts
+            $(document).on('keydown', function(e) {
+                // Ctrl + U for upload
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+
+                // Escape to cancel
+                if (e.key === 'Escape') {
+                    resetFileInput();
+                }
+            });
+
+            // Initialize
+            submitBtn.prop('disabled', true);
+            previewBtn.prop('disabled', true);
+        });
+    </script>
+
+    <style>
+        .file-upload-area {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: #0d6efd !important;
+            background-color: #e3f2fd !important;
+        }
+
+        .border-dashed {
+            border-style: dashed !important;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #20c997, #198754);
+        }
+
+        .upload-icon i {
+            transition: transform 0.3s ease;
+        }
+
+        .file-upload-area:hover .upload-icon i {
+            transform: translateY(-5px);
+        }
+
+        .selected-file-info {
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-lg {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            border-bottom: none;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        }
+
+        .border-2 {
+            border-width: 2px !important;
+        }
+    </style>
+}
