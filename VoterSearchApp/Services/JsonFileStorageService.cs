@@ -48,6 +48,64 @@ namespace VoterSearchApp.Services
             return _voters.OrderBy(v => v.SerialNumber).ToList();
         }
 
+        /// <summary>
+        /// পৃষ্ঠা অনুযায়ী ভোটার তথ্য রিটার্ন করে (Pagination)
+        /// </summary>
+        public PagedResult<Voter> GetPagedVoters(int page, int pageSize, string searchText = null)
+        {
+            var query = _voters.AsQueryable();
+
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                var searchLower = searchText.ToLower().Trim();
+
+                // Check if search text is digits (last 4-5 digits search)
+                if (searchLower.All(c => char.IsDigit(c)))
+                {
+                    if (searchLower.Length >= 4 && searchLower.Length <= 5)
+                    {
+                        // Search by last 4-5 digits
+                        query = query.Where(v => !string.IsNullOrEmpty(v.VoterNumber) &&
+                               v.VoterNumber.EndsWith(searchLower));
+                    }
+                    else
+                    {
+                        // Search full voter number
+                        query = query.Where(v => !string.IsNullOrEmpty(v.VoterNumber) &&
+                               v.VoterNumber.Contains(searchLower));
+                    }
+                }
+                else
+                {
+                    // Text search in name fields (case-insensitive)
+                    query = query.Where(v =>
+                        (!string.IsNullOrEmpty(v.Name) && v.Name.ToLower().Contains(searchLower)) ||
+                        (!string.IsNullOrEmpty(v.FatherName) && v.FatherName.ToLower().Contains(searchLower)) ||
+                        (!string.IsNullOrEmpty(v.MotherName) && v.MotherName.ToLower().Contains(searchLower)));
+                }
+            }
+
+            // Get total count before pagination
+            var totalCount = query.Count();
+
+            // Apply pagination
+            var items = query
+                .OrderBy(v => v.SerialNumber)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Return paged result
+            return new PagedResult<Voter>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                CurrentPage = page
+            };
+        }
+
         public List<Voter> SearchVoters(string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
@@ -127,3 +185,4 @@ namespace VoterSearchApp.Services
         }
     }
 }
+

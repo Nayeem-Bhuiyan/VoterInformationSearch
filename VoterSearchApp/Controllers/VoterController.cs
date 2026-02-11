@@ -29,23 +29,27 @@ namespace VoterSearchApp.Controllers
 
         public IActionResult Index(VoterSearchModel searchModel)
         {
-            ViewData["Title"] = "ভোটার তথ্য খুঁজুন";
+            // Set default values
+            if (searchModel.Page < 1) searchModel.Page = 1;
+            if (searchModel.PageSize < 1) searchModel.PageSize = 10;
 
-            List<Voter> voters;
+            // Get paged results
+            var pagedResult = _dataStorage.GetPagedVoters(
+                searchModel.Page,
+                searchModel.PageSize,
+                searchModel.SearchText);
 
-            if (!string.IsNullOrEmpty(searchModel?.SearchText))
-            {
-                voters = _dataStorage.SearchVoters(searchModel.SearchText);
-                ViewBag.SearchMessage = $"'{searchModel.SearchText}' এর জন্য {voters.Count} টি ফলাফল";
-            }
-            else
-            {
-                voters = _dataStorage.GetAllVoters();
-                ViewBag.SearchMessage = $"মোট ভোটার: {voters.Count} জন";
-            }
-
+            // Set ViewBag values for pagination
             ViewBag.SearchText = searchModel?.SearchText ?? "";
-            return View(voters);
+            ViewBag.CurrentPage = searchModel.Page;
+            ViewBag.PageSize = searchModel.PageSize;
+            ViewBag.TotalPages = pagedResult.TotalPages;
+            ViewBag.TotalCount = pagedResult.TotalCount;
+            ViewBag.SearchMessage = string.IsNullOrEmpty(searchModel.SearchText)
+                ? $"মোট ভোটার: {pagedResult.TotalCount} জন"
+                : $"'{searchModel.SearchText}' এর জন্য {pagedResult.TotalCount} টি ফলাফল";
+
+            return View(pagedResult.Items);
         }
 
         public IActionResult Upload()
@@ -96,7 +100,9 @@ namespace VoterSearchApp.Controllers
                 }
 
                 // Parse PDF file
-                var voters = _pdfParser.ParseVoterData(filePath);
+                //var voters = _pdfParser.ParseVoterData(filePath);
+                string folderPath = Path.Combine(_environment.WebRootPath, "Voter_List", "BULTA");
+                var voters = _pdfParser.ExtractVotersFromPdfFolder(folderPath);
 
                 if (voters.Count == 0)
                 {

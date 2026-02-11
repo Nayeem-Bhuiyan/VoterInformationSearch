@@ -1,0 +1,103 @@
+﻿@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    string searchText = ViewBag.SearchText ?? "";
+    int pageSize = ViewBag.PageSize ?? 10;
+}
+
+<div class="row align-items-center">
+    <div class="col-md-6 mb-2 mb-md-0">
+        <div class="text-muted">
+            <i class="fas fa-info-circle"></i>
+            মোট @totalCount জন ভোটারের মধ্যে
+            @{
+                int start = ((currentPage - 1) * pageSize) + 1;
+                int end = Math.Min(currentPage * pageSize, totalCount);
+            }
+            <span class="fw-bold">@start - @end</span> দেখানো হচ্ছে
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="d-flex justify-content-md-end align-items-center">
+            <!-- Items Per Page Dropdown -->
+            <div class="me-3">
+                <span class="text-muted me-2">প্রতি পৃষ্ঠায়:</span>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                        id="pageSizeSelect"
+                        onchange="changePageSize(this.value)">
+                    <option value="5">৫টি</option>
+                    <option value="10" selected>১০টি</option>
+                    <option value="20">২০টি</option>
+                    <option value="50">৫০টি</option>
+                    <option value="100">১০০টি</option>
+                </select>
+            </div>
+
+            <!-- Pagination Navigation -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Previous Button -->
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(currentPage - 1))">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        @{
+                            int startPage = Math.Max(1, currentPage - 2);
+                            int endPage = Math.Min(totalPages, startPage + 4);
+                            if (endPage - startPage < 4)
+                            {
+                                startPage = Math.Max(1, endPage - 4);
+                            }
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">@totalPages</a>
+                            </li>
+                        }
+
+                        <!-- Next Button -->
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(currentPage + 1))">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

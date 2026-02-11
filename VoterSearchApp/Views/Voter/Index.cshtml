@@ -3,6 +3,12 @@
     ViewData["Title"] = "ভোটার তথ্য খুঁজুন";
     var searchText = ViewBag.SearchText as string ?? "";
     var searchMessage = ViewBag.SearchMessage as string ?? "";
+
+    // Pagination variables
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
 }
 
 <div class="container-fluid mt-3">
@@ -23,11 +29,12 @@
             </div>
         </div>
         <div class="card-body">
-            <form method="get" asp-action="Index" class="row g-2">
+            <form method="get" asp-action="Index" class="row g-2" id="searchForm">
                 <div class="col-md-8">
                     <div class="input-group input-group-lg">
                         <input type="text"
                                name="SearchText"
+                               id="SearchText"
                                class="form-control border-primary"
                                placeholder="ভোটার নম্বর, নাম, পিতার নাম বা মাতার নাম বাংলা/ইংরেজিতে লিখুন..."
                                value="@searchText"
@@ -35,12 +42,22 @@
                         <button class="btn btn-primary" type="submit">
                             <i class="fas fa-search"></i> খুঁজুন
                         </button>
+                        @if (!string.IsNullOrEmpty(searchText))
+                        {
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> ক্লিয়ার
+                            </a>
+                        }
                     </div>
                     <small class="text-muted">
                         <i class="fas fa-info-circle"></i>
                         ভোটার নম্বরের শেষ ৪ বা ৫ ডিজিট দিয়েও খুঁজতে পারেন। উদাহরণ: "1234" অথবা "45678"
                     </small>
                 </div>
+
+                <!-- Hidden fields for pagination -->
+                <input type="hidden" name="Page" id="Page" value="@currentPage" />
+                <input type="hidden" name="PageSize" id="PageSize" value="@pageSize" />
             </form>
 
             @if (TempData["SuccessMessage"] != null)
@@ -64,8 +81,11 @@
     @if (Model.Any())
     {
         <div class="card shadow">
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-users"></i> ভোটার তালিকা</h5>
+                <span class="badge bg-light text-dark">
+                    পৃষ্ঠা: @currentPage / @totalPages
+                </span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -104,15 +124,10 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer text-muted">
-                <div class="row">
-                    <div class="col">
-                        সর্বশেষ আপডেট: @DateTime.Now.ToString("dd MMM yyyy HH:mm")
-                    </div>
-                    <div class="col text-end">
-                        <strong>মোট: @Model.Count জন</strong>
-                    </div>
-                </div>
+
+            <!-- Pagination Footer -->
+            <div class="card-footer">
+                @await Html.PartialAsync("_Pagination")
             </div>
         </div>
     }
@@ -150,29 +165,74 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Auto-focus search input
-            $('input[name="SearchText"]').focus();
-
-            // Auto-select search text on focus
-            $('input[name="SearchText"]').on('focus', function() {
-                $(this).select();
-            });
-
-            // Keyboard shortcut for search (Ctrl + F)
-            $(document).on('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'f') {
-                    e.preventDefault();
-                    $('input[name="SearchText"]').focus().select();
+        (function() {
+            // Check if jQuery is loaded
+            function initVoterApp() {
+                if (typeof jQuery === 'undefined') {
+                    console.warn('jQuery not loaded. Retrying in 100ms...');
+                    setTimeout(initVoterApp, 100);
+                    return;
                 }
-            });
 
-            // Smooth scroll to results
-            if ('@Model.Any()' === 'True') {
-                $('html, body').animate({
-                    scrollTop: $('.card-header.bg-success').offset().top - 20
-                }, 500);
+                // jQuery is now loaded
+                $(document).ready(function() {
+                    // Auto-focus search input
+                    $('input[name="SearchText"]').focus();
+
+                    // Auto-select search text on focus
+                    $('input[name="SearchText"]').on('focus', function() {
+                        $(this).select();
+                    });
+
+                    // Keyboard shortcut for search (Ctrl + F)
+                    $(document).on('keydown', function(e) {
+                        if (e.ctrlKey && e.key === 'f') {
+                            e.preventDefault();
+                            $('input[name="SearchText"]').focus().select();
+                        }
+                    });
+
+                    // Smooth scroll to results
+                    if ('@Model.Any()' === 'True') {
+                        $('html, body').animate({
+                            scrollTop: $('.card-header.bg-success').offset().top - 20
+                        }, 500);
+                    }
+
+                    // Clear search button
+                    $('.btn-secondary').on('click', function(e) {
+                        e.preventDefault();
+                        window.location.href = '@Url.Action("Index")';
+                    });
+
+                    console.log('Voter search app initialized successfully!');
+                });
+
+                // Global pagination functions
+                window.goToPage = function(page) {
+                    if ($('#Page').length) {
+                        $('#Page').val(page);
+                    }
+                    if ($('#searchForm').length) {
+                        $('#searchForm').submit();
+                    }
+                };
+
+                window.changePageSize = function(size) {
+                    if ($('#PageSize').length) {
+                        $('#PageSize').val(size);
+                    }
+                    if ($('#Page').length) {
+                        $('#Page').val(1); // Reset to first page
+                    }
+                    if ($('#searchForm').length) {
+                        $('#searchForm').submit();
+                    }
+                };
             }
-        });
+
+            // Start initialization
+            initVoterApp();
+        })();
     </script>
 }

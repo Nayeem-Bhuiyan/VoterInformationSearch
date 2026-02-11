@@ -39,8 +39,4 @@ namespace VoterSearchApp.Models
         }
     }
 
-    public class VoterSearchModel
-    {
-        public string SearchText { get; set; }
-    }
 }

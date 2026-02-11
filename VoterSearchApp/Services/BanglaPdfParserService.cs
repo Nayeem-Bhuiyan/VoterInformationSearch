@@ -10,6 +10,7 @@ namespace VoterSearchApp.Services
     {
         Task<List<Voter>> ParseVoterDataAsync(IFormFile pdfFile, string fileName);
         List<Voter> ParseVoterData(string filePath);
+        List<Voter> ExtractVotersFromPdfFolder(string folderPath = @"E:\Voter_List\BULTA\");
     }
 
     public class BanglaPdfParserService : IPdfParserService
@@ -131,6 +132,82 @@ namespace VoterSearchApp.Services
                 return string.Empty;
             }
         }
+
+
+        public List<Voter> ExtractVotersFromPdfFolder(string folderPath = @"E:\Voter_List\BULTA\")
+        {
+            var allVoters = new List<Voter>();
+
+            try
+            {
+                if (!Directory.Exists(folderPath))
+                {
+                    _logger.LogError($"Folder not found: {folderPath}");
+                    return allVoters;
+                }
+
+                var fileList = Directory.GetFiles(folderPath, "*.pdf", SearchOption.AllDirectories);
+                _logger.LogInformation($"Found {fileList.Length} PDF files");
+
+                foreach (var pdfFile in fileList)
+                {
+                    try
+                    {
+                        string pdfText = ExtractTextFromSinglePdf(pdfFile);
+
+
+                        if (string.IsNullOrWhiteSpace(pdfText))
+                        {
+                            _logger.LogWarning("No text extracted from PDF");
+                            return allVoters;
+                        }
+
+                        _logger.LogInformation("Raw extracted text length: {Length}", pdfText.Length);
+
+                        // Clean and normalize the text
+                        string cleanedText = CleanAndNormalizeText(pdfText);
+
+                        _logger.LogInformation("Cleaned text sample: {Sample}",
+                            cleanedText.Length > 500 ? cleanedText.Substring(0, 500) : cleanedText);
+
+                        // Try different parsing strategies
+                        var current_VoterList = ParseVoterEntries(cleanedText);
+                        if (current_VoterList!=null)
+                        {
+                            allVoters.AddRange(current_VoterList);
+                        }
+                       
+
+                        _logger.LogInformation($"Added {allVoters.Count} voters from {Path.GetFileName(pdfFile)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error processing {pdfFile}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error scanning folder");
+
+            }
+
+            return allVoters;
+        }
+
+        private string ExtractTextFromSinglePdf(string filePath)
+        {
+            var textBuilder = new StringBuilder();
+            using var document = PdfDocument.Open(filePath);
+            foreach (var page in document.GetPages())
+            {
+                var pageText = page.Text;
+                if (!string.IsNullOrWhiteSpace(pageText))
+                    textBuilder.AppendLine(pageText);
+            }
+            return textBuilder.ToString();
+        }
+
 
         private string CleanAndNormalizeText(string text)
         {
